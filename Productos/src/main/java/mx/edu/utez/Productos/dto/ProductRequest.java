@@ -12,7 +12,7 @@ public record ProductRequest(
         @Valid
         String name,
         @PositiveOrZero
-        int stock,
+        Integer stock,
         @Positive
         double price
 ) {
