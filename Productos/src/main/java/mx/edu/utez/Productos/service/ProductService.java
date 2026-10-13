@@ -1,6 +1,8 @@
 package mx.edu.utez.Productos.service;
 
+import mx.edu.utez.Productos.model.Category;
 import mx.edu.utez.Productos.model.Product;
+import mx.edu.utez.Productos.repository.CategoryRepository;
 import mx.edu.utez.Productos.repository.ProductRepository;
 import org.springframework.stereotype.Service;
 import java.util.List;
@@ -10,9 +12,11 @@ import java.util.Optional;
 public class ProductService {
 
     private final ProductRepository repo;
+    private final CategoryRepository repoCategory;
 
-    public ProductService(ProductRepository repo) {
+    public ProductService(ProductRepository repo, CategoryRepository repoCategory) {
         this.repo = repo;
+        this.repoCategory=repoCategory;
     }
 
     public List<Product> getAll() {
@@ -23,7 +27,9 @@ public class ProductService {
         return repo.findById(id);
     }
 
-    public Product save(Product product) {
+    public Product save(Product product, Long categoryId) {
+        Category category=repoCategory.findById(categoryId).orElseThrow();
+        product.setCategory(category);
         return repo.save(product);
     }
 

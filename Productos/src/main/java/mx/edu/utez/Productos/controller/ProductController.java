@@ -43,8 +43,11 @@ public class ProductController {
     }
 
     @PostMapping()
-    public ResponseEntity<ProductResponse> save(@Valid @RequestBody ProductRequest request) {
-        Product saved = service.save(toEntity(request));
+    public ResponseEntity<ProductResponse> save(@Valid @RequestBody ProductRequest product) {
+        if (product.name().isEmpty()){
+            ResponseEntity.badRequest().body("error");
+        }
+        Product saved = service.save(toEntity(product), product.categoryId());
         return ResponseEntity.status(HttpStatus.CREATED).body(toResponse(saved));
     }
 
@@ -67,7 +70,7 @@ public class ProductController {
     }
 
     private ProductResponse toResponse(Product product) {
-        return new ProductResponse(product.getId(), product.getName(), product.getPrice(), product.getStock());
+        return new ProductResponse(product.getId(), product.getName(), product.getPrice(), product.getStock(),0L,"");
     }
 
     private Product toEntity(ProductRequest req) {

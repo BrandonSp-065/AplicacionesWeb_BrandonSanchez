@@ -14,6 +14,8 @@ public record ProductRequest(
         @PositiveOrZero
         Integer stock,
         @Positive
-        double price
+        double price,
+        @NotNull
+        Long categoryId
 ) {
 }
