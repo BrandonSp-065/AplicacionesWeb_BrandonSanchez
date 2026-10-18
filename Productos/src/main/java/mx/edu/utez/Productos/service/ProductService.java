@@ -1,5 +1,6 @@
 package mx.edu.utez.Productos.service;
 
+import mx.edu.utez.Productos.exception.ResourceNotFoundException;
 import mx.edu.utez.Productos.model.Category;
 import mx.edu.utez.Productos.model.Product;
 import mx.edu.utez.Productos.repository.CategoryRepository;
@@ -28,22 +29,30 @@ public class ProductService {
     }
 
     public Product save(Product product, Long categoryId) {
-        Category category=repoCategory.findById(categoryId).orElseThrow();
+        Category category=repoCategory.findById(categoryId).orElseThrow(
+                ()->
+                        new ResourceNotFoundException("Category not found with id:" + categoryId)
+        );
         product.setCategory(category);
         return repo.save(product);
     }
 
-    public Optional<Product> update(long id, Product product) {
-        Optional<Product> optional = repo.findById(id);
-        if (optional.isEmpty()) {
-            return Optional.empty();
-        }
-        Product productDb = optional.get();
+    public Optional<Product> update(long id, Product product, Long categoryId) {
+
+        Product productDb = repo.findById(id).orElseThrow(
+                ()->
+                        new ResourceNotFoundException("Product not found with id"+id)
+        );
+        Category category=repoCategory.findById(categoryId).orElseThrow(
+                ()->
+                        new ResourceNotFoundException("Category not found with id"+categoryId)
+        );
+        //Product productDb = optional.get();
 
         productDb.setName(product.getName());
         productDb.setPrice(product.getPrice());
         productDb.setStock(product.getStock());
-
+        productDb.setCategory(category);
         return Optional.of(repo.save(productDb));
     }
 

@@ -62,7 +62,7 @@ public class ProductController {
 
     @PutMapping("/{id}")
     public ResponseEntity<ProductResponse> update(@PathVariable Long id,@Valid @RequestBody ProductRequest request) {
-        Optional<Product> optional = service.update(id, toEntity(request));
+        Optional<Product> optional = service.update(id, toEntity(request),request.categoryId());
         if (optional.isPresent()) {
             return ResponseEntity.status(HttpStatus.CREATED).body(toResponse(optional.get()));
         }
