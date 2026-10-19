@@ -1,5 +1,6 @@
 package mx.edu.utez.Productos.service;
 
+import mx.edu.utez.Productos.exception.ResourceConflictException;
 import mx.edu.utez.Productos.exception.ResourceNotFoundException;
 import mx.edu.utez.Productos.model.Category;
 import mx.edu.utez.Productos.model.Product;
@@ -37,7 +38,7 @@ public class ProductService {
         return repo.save(product);
     }
 
-    public Optional<Product> update(long id, Product product, Long categoryId) {
+    public Product update(long id, Product product, Long categoryId) {
 
         Product productDb = repo.findById(id).orElseThrow(
                 ()->
@@ -53,7 +54,27 @@ public class ProductService {
         productDb.setPrice(product.getPrice());
         productDb.setStock(product.getStock());
         productDb.setCategory(category);
-        return Optional.of(repo.save(productDb));
+        return (repo.save(productDb));
+    }
+
+    public Product updateStock(long id, String keyWord, int stock) {
+        Product productDb = repo.findById(id).orElseThrow(
+                () -> new ResourceNotFoundException("Product not found with id: " + id)
+        );
+
+        if (keyWord == null || (!keyWord.equalsIgnoreCase("add") && !keyWord.equalsIgnoreCase("remove"))) {
+            throw new ResourceConflictException("La palabra no es valida.");
+        }
+
+        if (keyWord.equalsIgnoreCase("add")) {
+            productDb.setStock(productDb.getStock() + stock);
+        } else if (keyWord.equalsIgnoreCase("remove")) {
+            if (productDb.getStock() - stock < 0) {
+                throw new ResourceConflictException("El stock despues de la operacion no puede ser menor a 0. El stock actual es de: " + productDb.getStock());
+            }
+            productDb.setStock(productDb.getStock() - stock);
+        }
+        return repo.save(productDb);
     }
 
     public boolean delete(Long id) {

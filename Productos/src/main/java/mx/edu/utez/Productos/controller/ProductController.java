@@ -3,6 +3,8 @@ package mx.edu.utez.Productos.controller;
 import jakarta.validation.Valid;
 import mx.edu.utez.Productos.dto.ProductRequest;
 import mx.edu.utez.Productos.dto.ProductResponse;
+import mx.edu.utez.Productos.dto.StockRequest;
+import mx.edu.utez.Productos.exception.ResourceNotFoundException;
 import mx.edu.utez.Productos.model.Product;
 import mx.edu.utez.Productos.service.ProductService;
 import org.springframework.http.HttpStatus;
@@ -34,12 +36,11 @@ public class ProductController {
 
     @GetMapping("/{id}")
     public ResponseEntity<ProductResponse> getById(@PathVariable Long id) {
-        Optional<Product> product = service.findById(id);
-        if (product.isPresent()) {
-            return ResponseEntity.ok(toResponse(product.get()));
-        } else {
-            return ResponseEntity.notFound().build();
-        }
+        Product product = service.findById(id).orElseThrow(
+                ()->
+                new ResourceNotFoundException("Product not found with id:" + id)
+        );
+            return ResponseEntity.ok(toResponse(product));
     }
 
     @PostMapping()
@@ -62,15 +63,26 @@ public class ProductController {
 
     @PutMapping("/{id}")
     public ResponseEntity<ProductResponse> update(@PathVariable Long id,@Valid @RequestBody ProductRequest request) {
-        Optional<Product> optional = service.update(id, toEntity(request),request.categoryId());
-        if (optional.isPresent()) {
-            return ResponseEntity.status(HttpStatus.CREATED).body(toResponse(optional.get()));
-        }
-        return ResponseEntity.notFound().build();
+        Product optional = service.update(id, toEntity(request),request.categoryId());
+
+        return ResponseEntity.ok(toResponse(optional));
     }
 
+    @PatchMapping("/{id}/upstock")
+    public ResponseEntity<ProductResponse> updateStockPatch(@PathVariable Long id, @Valid @RequestBody StockRequest request) {
+        Product updatedProduct = service.updateStock(id, request.keyWord(), request.stock());
+        return ResponseEntity.ok(toResponse(updatedProduct));
+    }
+
+    @PostMapping("/{id}/upstock")
+    public ResponseEntity<ProductResponse> updateStockPost(@PathVariable Long id, @Valid @RequestBody StockRequest request) {
+        Product updatedProduct = service.updateStock(id, request.keyWord(), request.stock());
+        return ResponseEntity.ok(toResponse(updatedProduct));
+    }
+
+
     private ProductResponse toResponse(Product product) {
-        return new ProductResponse(product.getId(), product.getName(), product.getPrice(), product.getStock(),0L,"");
+        return new ProductResponse(product.getId(), product.getName(), product.getPrice(), product.getStock(), product.getCategory().getId(), product.getCategory().getName());
     }
 
     private Product toEntity(ProductRequest req) {
